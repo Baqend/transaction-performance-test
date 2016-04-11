@@ -26,7 +26,7 @@ public class Config {
     /**
      * The number of connections used by the client (i.e. the number of parallel transactions).
      */
-    private int connections = 1;
+    private int connections = 5;
 
 
     public int getNumObject() {

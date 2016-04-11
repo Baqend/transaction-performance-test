@@ -2,6 +2,9 @@ import operation.PartialUpdateContext;
 import operation.StandardContext;
 import operation.TransactionContext;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -12,16 +15,29 @@ import java.util.concurrent.TimeUnit;
 public class Starter {
 
     public static void main(String[] args) {
-        long offset = 0; // TODO calculate offset to sync multiple clients.
+        LocalDateTime now = LocalDateTime.now();
+
+        LocalDateTime nextMinute = now.truncatedTo(ChronoUnit.MINUTES).plusMinutes(1);
+        long startLong = nextMinute.toInstant(ZoneOffset.UTC).toEpochMilli();
+
+        long nowLong = now.toInstant(ZoneOffset.UTC).toEpochMilli();
+        long delta = startLong - nowLong;
+
+        if (delta < 5_000) {
+            throw new RuntimeException("Dangerous scheduling");
+        }
+        System.out.println("Wainting...");
         ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
-        executor.schedule(() -> run(), offset, TimeUnit.MILLISECONDS);
+        executor.schedule(() -> run(), delta, TimeUnit.MILLISECONDS);
     }
 
     private static void run() {
+        System.out.println("Time " + LocalDateTime.now());
         System.out.println("Running...");
         Config config = new Config();
         ConnectionSetup setup = new ConnectionSetup("localhost");
-        setup.initDatabase(config.getNumObject());
+        // uncomment to init database (do not use with multiple clients) use DatabaseInitializer instead.
+        // setup.initDatabase(config.getNumObject());
         System.out.println("Initialized...");
 
         TransactionPerformanceTest test = new TransactionPerformanceTest(config);
