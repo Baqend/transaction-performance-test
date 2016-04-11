@@ -1,5 +1,3 @@
-import java.util.Random;
-
 /**
  * Configures the performance test.
  */
@@ -12,7 +10,7 @@ public class Config {
      * The number of operation sequences executed in the text run.
      * e.g. the number of transactions.
      */
-    private int transactions = 10_000;
+    private int transactions = 1_000;
     /**
      * The size of the executed transactions.
      */
@@ -24,9 +22,9 @@ public class Config {
      */
     private double readRate = 0.80;
     /**
-     * The number of connections used by the client (i.e. the number of parallel transactions).
+     * The attempted throughput (number of transactions) per client per second
      */
-    private int connections = 5;
+    private int targetThroughput = 300;
 
 
     public int getNumObject() {
@@ -45,10 +43,6 @@ public class Config {
         return readRate;
     }
 
-    public int getConnections() {
-        return connections;
-    }
-
     public void setNumObject(int numObject) {
         this.numObject = numObject;
     }
@@ -65,7 +59,11 @@ public class Config {
         this.readRate = readRate;
     }
 
-    public void setConnections(int connections) {
-        this.connections = connections;
+    public int getTargetThroughput() {
+        return targetThroughput;
+    }
+
+    public void setTargetThroughput(int targetThroughput) {
+        this.targetThroughput = targetThroughput;
     }
 }

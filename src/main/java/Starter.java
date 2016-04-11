@@ -26,7 +26,7 @@ public class Starter {
         if (delta < 5_000) {
             throw new RuntimeException("Dangerous scheduling");
         }
-        System.out.println("Wainting...");
+        System.out.println("Waiting...");
         ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
         executor.schedule(() -> run(), delta, TimeUnit.MILLISECONDS);
     }
