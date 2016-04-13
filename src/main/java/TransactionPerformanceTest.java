@@ -67,7 +67,7 @@ public class TransactionPerformanceTest {
         CompletableFuture<? extends OperationContext.SequenceContext> trContext = context.begin();
         for (int j = 0; j < config.getTransactionSize(); j++) {
             ObjectRef ref = getRandomRef();
-            trContext = trContext.thenCompose(transaction -> {
+            trContext = trContext.thenComposeAsync(transaction -> {
                 if (rnd.nextDouble() < config.getReadRate()) {
                     // read
                     return transaction.read(ref)

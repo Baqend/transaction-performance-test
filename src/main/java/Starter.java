@@ -15,6 +15,13 @@ import java.util.concurrent.TimeUnit;
 public class Starter {
 
     public static void main(String[] args) {
+        String ip;
+        if (args.length > 0) {
+            ip = args[0];
+        } else {
+            ip = "localhost";
+        }
+
         LocalDateTime now = LocalDateTime.now();
 
         LocalDateTime nextMinute = now.truncatedTo(ChronoUnit.MINUTES).plusMinutes(1);
@@ -29,16 +36,16 @@ public class Starter {
         delta = 0;
         System.out.println("Waiting...");
         ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
-        executor.schedule(() -> run(), delta, TimeUnit.MILLISECONDS);
+        executor.schedule(() -> run(ip), delta, TimeUnit.MILLISECONDS);
     }
 
-    private static void run() {
+    private static void run(String ip) {
         System.out.println("Time " + LocalDateTime.now());
         System.out.println("Running...");
         Config config = new Config();
-        ConnectionSetup setup = new ConnectionSetup("localhost");
+        ConnectionSetup setup = new ConnectionSetup(ip);
         // uncomment to init database (do not use with multiple clients) use DatabaseInitializer instead.
-        // setup.initDatabase(config.getNumObject());
+        setup.initDatabase(config.getNumObject());
         System.out.println("Initialized...");
 
         TransactionPerformanceTest test = new TransactionPerformanceTest(config);
