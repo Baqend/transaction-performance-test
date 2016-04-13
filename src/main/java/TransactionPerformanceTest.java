@@ -9,7 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.LongSummaryStatistics;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -79,7 +78,6 @@ public class TransactionPerformanceTest {
                             .thenApply(ignored -> transaction);
                 }
             });
-
         }
         CompletableFuture<Void> commit = trContext.thenCompose(OperationContext.SequenceContext::commit);
 
@@ -88,6 +86,29 @@ public class TransactionPerformanceTest {
             return err == null;
         });
     }
+
+    //Alternative
+//    private CompletableFuture<Boolean> executeTransaction(OperationContext context, LatencyTracker latencyTracker) {
+//        long start = System.nanoTime();
+//
+//        CompletableFuture<Void> commit = context.begin().thenCompose(transaction -> {
+//            CompletableFuture<?> process = CompletableFuture.completedFuture(null);
+//            for (int j = 0; j < config.getTransactionSize(); j++) {
+//                ObjectRef ref = getRandomRef();
+//                if (rnd.nextDouble() < config.getReadRate()) {
+//                    process = process.thenCompose(ignored -> transaction.read(ref));
+//                } else {
+//                    process = process.thenCompose(ignored -> transaction.update(ref));
+//                }
+//            }
+//            return process.thenApply(ignored -> transaction);
+//        }).thenCompose(OperationContext.SequenceContext::commit);
+//
+//        return commit.handle((res, err) -> {
+//            latencyTracker.trackLatency(System.nanoTime() - start);
+//            return err == null;
+//        });
+//    }
 
 
     private ObjectRef getRandomRef() {
