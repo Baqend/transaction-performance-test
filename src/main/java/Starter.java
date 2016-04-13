@@ -23,9 +23,10 @@ public class Starter {
         long nowLong = now.toInstant(ZoneOffset.UTC).toEpochMilli();
         long delta = startLong - nowLong;
 
-        if (delta < 5_000) {
-            throw new RuntimeException("Dangerous scheduling");
-        }
+//        if (delta < 5_000) {
+//            throw new RuntimeException("Dangerous scheduling");
+//        }
+        delta = 0;
         System.out.println("Waiting...");
         ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
         executor.schedule(() -> run(), delta, TimeUnit.MILLISECONDS);
@@ -42,6 +43,7 @@ public class Starter {
 
         TransactionPerformanceTest test = new TransactionPerformanceTest(config);
 
+        test.run("warmup.dat", new StandardContext(setup.getClient()));
         test.run("standard.dat", new StandardContext(setup.getClient()));
         System.out.println("Standard...done.");
         test.run("transactional.dat", new TransactionContext(setup.getClient()));

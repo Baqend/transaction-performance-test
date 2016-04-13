@@ -10,7 +10,7 @@ public class Config {
      * The number of operation sequences executed in the text run.
      * e.g. the number of transactions.
      */
-    private int transactions = 1_000;
+    private int transactions = 10_000;
     /**
      * The size of the executed transactions.
      */
