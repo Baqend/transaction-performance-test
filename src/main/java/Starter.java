@@ -1,7 +1,11 @@
+import baqend.Config;
+import baqend.ConnectionSetup;
+import baqend.TransactionPerformanceTest;
 import operation.PartialUpdateContext;
 import operation.StandardContext;
 import operation.TransactionContext;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
@@ -42,23 +46,31 @@ public class Starter {
     private static void run(String ip) {
         System.out.println("Time " + LocalDateTime.now());
         System.out.println("Running...");
-        Config config = new Config();
-        ConnectionSetup setup = new ConnectionSetup(ip);
-        // uncomment to init database (do not use with multiple clients) use DatabaseInitializer instead.
-        setup.initDatabase(config.getNumObject());
-        System.out.println("Initialized...");
+        Config config = null;
+        try {
+            config = Config.readFromFile("config/config.json");
+            ConnectionSetup setup = new ConnectionSetup(ip);
+            // uncomment to init database (do not use with multiple clients) use DatabaseInitializer instead.
+            setup.initDatabase(config.getNumObject());
+            System.out.println("Initialized...");
 
-        TransactionPerformanceTest test = new TransactionPerformanceTest(config);
+            TransactionPerformanceTest test = new TransactionPerformanceTest(config);
 
-        test.run("warmup.dat", new StandardContext(setup.getClient()));
-        test.run("standard.dat", new StandardContext(setup.getClient()));
-        System.out.println("Standard...done.");
-        test.run("transactional.dat", new TransactionContext(setup.getClient()));
-        System.out.println("transactional...done.");
-        test.run("partialUpdate.dat", new PartialUpdateContext(setup.getClient(), setup.getValueClassField()));
-        System.out.println("partialupdate...done.");
-        System.out.println("exit.");
-        System.exit(0);
+            test.run("warmup_s.dat", new StandardContext(setup.getClient()));
+            test.run("standard.dat", new StandardContext(setup.getClient()));
+            System.out.println("Standard...done.");
+            test.run("warmup_t.dat", new TransactionContext(setup.getClient()));
+            test.run("transactional.dat", new TransactionContext(setup.getClient()));
+            System.out.println("transactional...done.");
+            test.run("warmup_p.dat", new PartialUpdateContext(setup.getClient(), setup.getValueClassField()));
+            test.run("partialUpdate.dat", new PartialUpdateContext(setup.getClient(), setup.getValueClassField()));
+            System.out.println("partialupdate...done.");
+            System.out.println("exit.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            System.exit(0);
+        }
     }
 
 }

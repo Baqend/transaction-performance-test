@@ -1,0 +1,7 @@
+{
+  "numObject": 10000,
+  "transactions": 10000,
+  "transactionSize": 10,
+  "readRate": 0.80,
+  "targetThroughput": 300
+}

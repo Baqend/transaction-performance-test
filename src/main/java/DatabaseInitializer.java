@@ -1,3 +1,5 @@
+import baqend.ConnectionSetup;
+
 /**
  * Initializes the database.
  */

@@ -1,3 +1,5 @@
+package baqend;
+
 import info.orestes.client.OrestesClient;
 import info.orestes.common.typesystem.*;
 import info.orestes.pluggable.types.data.DBClassField;

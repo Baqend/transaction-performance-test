@@ -1,3 +1,12 @@
+package baqend;
+
+import com.google.gson.Gson;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
 /**
  * Configures the performance test.
  */
@@ -43,6 +52,10 @@ public class Config {
         return readRate;
     }
 
+    public int getTargetThroughput() {
+        return targetThroughput;
+    }
+
     public void setNumObject(int numObject) {
         this.numObject = numObject;
     }
@@ -59,11 +72,15 @@ public class Config {
         this.readRate = readRate;
     }
 
-    public int getTargetThroughput() {
-        return targetThroughput;
-    }
-
     public void setTargetThroughput(int targetThroughput) {
         this.targetThroughput = targetThroughput;
+    }
+
+    public static Config readFromFile(String path) throws IOException {
+        Gson gson = new Gson();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            return gson.fromJson(reader, Config.class);
+        }
     }
 }
