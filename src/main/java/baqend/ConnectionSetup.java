@@ -17,6 +17,11 @@ public class ConnectionSetup {
     private final OrestesClient client;
     private final UserInfo rootUser;
 
+    /**
+     * Establishes a new connection to the given ip and ensures the schema exists.
+     *
+     * @param ip
+     */
     public ConnectionSetup(String ip) {
         // Connect a client to the running baqend server using api version v1
         client = new OrestesClient("http://" + ip + ":8080/v1");
@@ -37,6 +42,11 @@ public class ConnectionSetup {
         valueClassField = client.getSchema().getClass(TEST_BUCKET).getField("value");
     }
 
+    /**
+     * Returns the client to use for requests against the server.
+     *
+     * @return The client to use for requests against the server.
+     */
     public OrestesClient getClient() {
         return client;
     }
@@ -57,6 +67,11 @@ public class ConnectionSetup {
         }
     }
 
+    /**
+     * Returns the class field of the value field (from the example schema).
+     *
+     * @return The class field of the value field (from the example schema).
+     */
     public DBClassField getValueClassField() {
         return valueClassField;
     }

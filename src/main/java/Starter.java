@@ -42,6 +42,11 @@ public class Starter {
         executor.schedule(() -> run(ip), delta, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Runs the performance test against the sepcified orestes server.
+     *
+     * @param ip The ip of the orestes server to use.
+     */
     private static void run(String ip) {
         System.out.println("Time " + LocalDateTime.now());
         System.out.println("Running...");

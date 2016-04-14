@@ -10,6 +10,15 @@ import java.io.PrintWriter;
  * Writes the results to files.
  */
 public class ResultWriter {
+    /**
+     * Writes the results to the specified file.
+     *
+     * @param config         The config.
+     * @param resultPath     The path of the file to write to.
+     * @param latencyTracker The latency tracker.
+     * @param successes      The number of successful transactions.
+     * @param runtime        The runtime of all transactions combined.
+     */
     public static void writeResults(Config config, String resultPath, LatencyTracker latencyTracker, long successes, long runtime) {
         File resultDir = new File("results");
         if (!resultDir.exists()) {
