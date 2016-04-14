@@ -8,6 +8,8 @@ import tracking.LatencyTracker;
 import tracking.ResultWriter;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
 
@@ -17,36 +19,35 @@ import java.util.concurrent.*;
 public class TransactionPerformanceTest {
     private final Config config;
     private final Random rnd;
-    private final CompletionService<Boolean> csTransaction;
 
     public TransactionPerformanceTest(Config config) {
         this.config = config;
         this.rnd = new Random(config.getNumObject() + config.getTransactions() + config.getTransactionSize());
-        ExecutorService es = Executors.newFixedThreadPool(10);
-        csTransaction = new ExecutorCompletionService<>(es);
     }
 
     public void run(String resultPath, OperationContext context) {
         LatencyTracker latencyTracker = new LatencyTracker();
         RateLimiter rateLimiter = RateLimiter.create(config.getTargetThroughput());
+        Semaphore semaphore = new Semaphore(10);
 
         long start = System.nanoTime();
+        List<CompletableFuture<Boolean>> transactions = new ArrayList<>(config.getTransactions());
         for (int i = 0; i < config.getTransactions(); i++) {
             rateLimiter.acquire();
-            csTransaction.submit(() -> executeTransaction(context, latencyTracker).join());
+            CompletableFuture<Boolean> transaction = CompletableFuture.runAsync(() -> {
+                try {
+                    semaphore.acquire();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).thenCompose(ignored -> executeTransaction(context, latencyTracker)).thenApply(success -> {
+                semaphore.release();
+                return success;
+            });
+            transactions.add(transaction);
         }
 
-        long successes = 0;
-        for (int i = 0; i < config.getTransactions(); i++) {
-            try {
-                boolean success = csTransaction.take().get();
-                if (success) {
-                    successes++;
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
+        long successes = transactions.stream().filter(CompletableFuture::join).count();
 
         try {
             long runtime = System.nanoTime() - start;
