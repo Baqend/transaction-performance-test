@@ -3,5 +3,6 @@
   "transactions": 10000,
   "transactionSize": 10,
   "readRate": 0.80,
-  "targetThroughput": 300
+  "targetThroughput": 300,
+  "maxClientParallelism": 10
 }

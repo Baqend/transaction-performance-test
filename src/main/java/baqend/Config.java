@@ -3,7 +3,6 @@ package baqend;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -34,7 +33,19 @@ public class Config {
      * The attempted throughput (number of transactions) per client per second
      */
     private int targetThroughput = 300;
+    /**
+     * Sets the maximum number of parallel transaction for this client.
+     * Might impact target throughput rate.
+     */
+    private int maxClientParallelism = 10;
 
+    public int getMaxClientParallelism() {
+        return maxClientParallelism;
+    }
+
+    public void setMaxClientParallelism(int maxClientParallelism) {
+        this.maxClientParallelism = maxClientParallelism;
+    }
 
     public int getNumObject() {
         return numObject;

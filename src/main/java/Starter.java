@@ -34,10 +34,9 @@ public class Starter {
         long nowLong = now.toInstant(ZoneOffset.UTC).toEpochMilli();
         long delta = startLong - nowLong;
 
-//        if (delta < 5_000) {
-//            throw new RuntimeException("Dangerous scheduling");
-//        }
-        delta = 0;
+        if (delta < 5_000) {
+            throw new RuntimeException("Dangerous scheduling");
+        }
         System.out.println("Waiting...");
         ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
         executor.schedule(() -> run(ip), delta, TimeUnit.MILLISECONDS);
@@ -51,7 +50,7 @@ public class Starter {
             config = Config.readFromFile("config/config.json");
             ConnectionSetup setup = new ConnectionSetup(ip);
             // uncomment to init database (do not use with multiple clients) use DatabaseInitializer instead.
-            setup.initDatabase(config.getNumObject());
+//            setup.initDatabase(config.getNumObject());
             System.out.println("Initialized...");
 
             TransactionPerformanceTest test = new TransactionPerformanceTest(config);

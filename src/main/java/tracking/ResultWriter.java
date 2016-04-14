@@ -10,7 +10,7 @@ import java.io.PrintWriter;
  * Writes the results to files.
  */
 public class ResultWriter {
-    public static void writeResults(Config config, String resultPath, LatencyTracker latencyTracker, long successes, long runtime) throws FileNotFoundException {
+    public static void writeResults(Config config, String resultPath, LatencyTracker latencyTracker, long successes, long runtime) {
         File resultDir = new File("results");
         if (!resultDir.exists()) {
             resultDir.mkdir();
@@ -21,6 +21,8 @@ public class ResultWriter {
             writer.println("Per Second " + (config.getTransactions() / (runtime / 1_000_000_000.0)));
             writer.println("Aborts " + (config.getTransactions() - successes));
             writer.println("Latency (avg) " + (latencyTracker.getAvgLatency() / 1_000_000));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }

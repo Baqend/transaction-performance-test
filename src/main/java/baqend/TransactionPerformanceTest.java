@@ -11,7 +11,10 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
 /**
  * Executes the transaction performance test.
@@ -28,33 +31,35 @@ public class TransactionPerformanceTest {
     public void run(String resultPath, OperationContext context) {
         LatencyTracker latencyTracker = new LatencyTracker();
         RateLimiter rateLimiter = RateLimiter.create(config.getTargetThroughput());
-        Semaphore semaphore = new Semaphore(10);
+        Semaphore semaphore = new Semaphore(config.getMaxClientParallelism());
 
         long start = System.nanoTime();
         List<CompletableFuture<Boolean>> transactions = new ArrayList<>(config.getTransactions());
         for (int i = 0; i < config.getTransactions(); i++) {
             rateLimiter.acquire();
-            CompletableFuture<Boolean> transaction = CompletableFuture.runAsync(() -> {
-                try {
-                    semaphore.acquire();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }).thenCompose(ignored -> executeTransaction(context, latencyTracker)).thenApply(success -> {
-                semaphore.release();
-                return success;
-            });
+            CompletableFuture<Boolean> transaction = acquireSlot(semaphore)
+                    .thenCompose(ignored -> executeTransaction(context, latencyTracker))
+                    .thenApply(success -> {
+                        semaphore.release();
+                        return success;
+                    });
             transactions.add(transaction);
         }
 
         long successes = transactions.stream().filter(CompletableFuture::join).count();
+        long runtime = System.nanoTime() - start;
 
-        try {
-            long runtime = System.nanoTime() - start;
-            ResultWriter.writeResults(config, resultPath, latencyTracker, successes, runtime);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        ResultWriter.writeResults(config, resultPath, latencyTracker, successes, runtime);
+    }
+
+    private CompletableFuture<Void> acquireSlot(Semaphore semaphore) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                semaphore.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     private CompletableFuture<Boolean> executeTransaction(OperationContext context, LatencyTracker latencyTracker) {
