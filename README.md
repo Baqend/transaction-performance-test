@@ -31,11 +31,10 @@ sudo rm /etc/docker/key.json
 #Add the ubuntu user to the docker group
 sudo usermod -aG docker ubuntu
 ```
-
-The machine will automatically power down. When it has shut down, take a snapshot.
+Take a snapshot of the maschine and terminate the isntance.
 
 ### Swarm Worker
-Create 5 big servers as swarm workers from the image and use this start script (replace the server numbers):
+Create 5 big servers as swarm workers from the image and usethe following start script (replace the server numbers) and make sure the servers can communicate on ports 2181, 2888, 3888 and 2375:
 ```
 #!/bin/bash
 # first script argument: the servers in the ZooKeeper ensemble:
@@ -66,9 +65,10 @@ sleep 30
 # make this machine join the Docker Swarm cluster:
 docker run -d --restart=always swarm join --advertise=$PRIVATE_IP:2375 zk://$ZOOKEEPER_SERVERS
 ```
+Create a smaller maschine from the same image to later host the swarm manager it needs the same ports and further more port 8080 and 22 open to the worlds and a public ip address (to connect via http and ssh).
 
-### Zookeeper
-Maker DNS stuff
+### ZooKeeper
+Choose 3 machines to host the ZooKeeper Nodes and make sure zk1.os.baqend.com points to the first, zk2.os.baqend.com to the second and zk3.os.baqend.com to the third (internal ip addresses).
 
 Start the ZooKeepers:
 ```
