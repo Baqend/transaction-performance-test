@@ -72,7 +72,7 @@ Choose 3 machines to host the ZooKeeper Nodes and make sure zk1.os.baqend.com po
 
 Start the ZooKeepers:
 ```
-docker -H tcp://zk1.cloud:2375 run -d --restart=always \
+docker -H tcp://zk1.os.baqend.com:2375 run -d --restart=always \
       -p 2181:2181 \
       -p 2888:2888 \
       -p 3888:3888 \
@@ -99,14 +99,17 @@ docker -H tcp://zk3.os.baqend.com:2375 run -d --restart=always \
 ```
 
 ### Swarm Manager
+Connect to the smaller machine and start the swarm manager:
 
+```
 docker run -d --restart=always \
       --label role=manager \
       -p 2376:2375 \
       swarm manage zk://zk1.os.baqend.com,zk2.os.baqend.com,zk3.os.baqend.com
+```
 			
 ### Overlay Network
-Talk to the swarm manager:
+All docker commands now need to go to the swarm manager:
 
 `export DOCKER_HOST=tcp://localhost:2376`
 
@@ -119,11 +122,11 @@ Create a overlay network for the containers to communicate:
 ### Config Servers
 Start 3 mongo config servers:
 
-`docker run -d --name mongo-config1 --restart=always --net=bqnet -e constraint:az==server0 mongo --configsvr --replSet configReplSet --storageEngine wiredTiger`
+`docker run -d --name mongo-config1 --restart=always --net=bqnet -e constraint:az==server2 mongo --configsvr --replSet configReplSet --storageEngine wiredTiger`
 
-`docker run -d --name mongo-config2 --restart=always --net=bqnet -e constraint:az==server2 mongo --configsvr --replSet configReplSet --storageEngine wiredTiger`
+`docker run -d --name mongo-config2 --restart=always --net=bqnet -e constraint:az==server3 mongo --configsvr --replSet configReplSet --storageEngine wiredTiger`
 
-`docker run -d --name mongo-config3 --restart=always --net=bqnet -e constraint:az==server3 mongo --configsvr --replSet configReplSet --storageEngine wiredTiger`
+`docker run -d --name mongo-config3 --restart=always --net=bqnet -e constraint:az==server4 mongo --configsvr --replSet configReplSet --storageEngine wiredTiger`
 
 Connect to one of the started config servers:
 
@@ -163,15 +166,13 @@ Start 3 mongos, one for each REST server:
 
 Register the shards using one of the mongos:
 
-`docker exec -it mongo mongo`
-
-Register replicaSet shards with:
-
-`sh.addShard( "rs[1..n]/mongo1-rs[1..n]:27017" )`
+`docker exec -it mongos1 mongo`
 
 Register stand-alone shards with:
  
-`sh.addShard( "mongo[1..n]:27017" )`
+`sh.addShard( "mongo1:27017" )`
+
+`sh.addShard( "mongo2:27017" )`
 
 ### Enable Sharding
 Enable sharding for the `test`-database:
@@ -185,9 +186,14 @@ Shard the `test.bucket.Value`-collection:
 Define the split-point for the shards:
 
 `sh.splitAt("test.test.bucket.Value", {_id: "/db/test.bucket.Value/5000"})`
+
+View the sharding status:
+
+`sh.status()`
 	
 ## Setup Redis
-`docker run -d --name redis --restart=always -e constraint:az==server3 redis redis-server --appendonly yes`
+Start the Redis server on the same machine as one of the REST servers:
+`docker run -d --name redis --restart=always --net=bqnet -e constraint:az==server3 redis redis-server --appendonly yes --protected-mode no`
 
 ## Setup Orestes and Node Servers
 
@@ -195,7 +201,12 @@ Define the split-point for the shards:
 
 Make sure the orestes and node docker project is pulled onto the servers 3,4 and 5:
 
-`bla bla bla`
+`docker login -u yyy -p xxx docker.baqend.com`
+
+`docker -H tcp://<host>:2375 pull docker.baqend.com/baqend/orestes:1.2.0`
+
+`docker -H tcp://<host>:2375 pull docker.baqend.com/baqend/node:1.2.0`
+
 
 Each server needs its own config file for the REST server to connect to its respective mongos.
 
@@ -243,6 +254,16 @@ Each server needs its own config file for the REST server to connect to its resp
 4. Repeat for all REST servers.
 
 ### Starting Server with Docker-Compose
+Install docker-compose
+
+`mkdir docker`
+
+`curl -L https://github.com/docker/compose/releases/download/1.7.0/docker-compose-`uname -s`-`uname -m` > docker/docker-compose`
+
+`chmod +x docker/docker-compose`
+
+`sudo cp docker/docker-compose /usr/local/bin/docker-compose`
+
 Create a `docker-compose.yml` containing:
 
 ```
